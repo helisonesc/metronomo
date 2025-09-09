@@ -21,22 +21,24 @@
         const bpmDisplay = document.querySelector('.bpm-display');
         const startButton = document.getElementById('startButton');
         let metronomeInterval;
-        const clickSound = new Audio('data:audio/wav;base64,UklGRlZ9AABXQVZFZm10IBAAAAABAAEAwAgAAMABAAABAAEAwBAAFBCAAAACABAA+gAAAGQAEAAIAAwAAAEhAAABCAABoAAAAlAAAALAAAACIAAAAWAAAMAAAACAAABUABAAIAABAAAgAAAEAAAAADAgQA'); // Um som simples de clique
+
+        // O som do clique pode ser criado dentro da função para garantir que ele esteja pronto
+        // após a interação do usuário. Usamos o Base64 para um som de clique simples.
+        const clickSoundData = 'data:audio/wav;base64,UklGRlZ9AABXQVZFZm10IBAAAAABAAEAwAgAAMABAAABAAEAwBAAFBCAAAACABAA+gAAAGQAEAAIAAwAAAEhAAABCAABoAAAAlAAAALAAAACIAAAAWAAAMAAAACAAABUABAAIAABAAAgAAAEAAAAADAgQA';
 
         if (!isNaN(bpm) && bpm > 0) {
             bpmDisplay.textContent = `${bpm} BPM`;
             
-            // Oculta o botão Tocar para que o usuário clique no display para iniciar o som.
-            // A maioria dos navegadores exige uma interação do usuário para iniciar o áudio.
-            startButton.style.display = 'block';
-
             startButton.addEventListener('click', () => {
                 if (!metronomeInterval) {
-                    // Calcula o intervalo em milissegundos
                     const intervalInMs = 60000 / bpm;
+                    
+                    // Inicia o metrônomo e toca o som
                     metronomeInterval = setInterval(() => {
-                        clickSound.play();
+                        const clickSound = new Audio(clickSoundData);
+                        clickSound.play().catch(e => console.error("Erro ao tocar o áudio:", e));
                     }, intervalInMs);
+                    
                     startButton.textContent = 'Parar';
                 } else {
                     clearInterval(metronomeInterval);
@@ -46,9 +48,8 @@
             });
         } else {
             bpmDisplay.textContent = 'BPM inválido';
+            startButton.style.display = 'none'; // Esconde o botão se o BPM for inválido
         }
-
     </script>
 </body>
-
 </html>
