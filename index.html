@@ -1,55 +1,317 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Metrônomo da Música</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; margin-top: 50px; background-color: #f0f0f0; }
-        .bpm-display { font-size: 3em; font-weight: bold; margin-bottom: 20px; }
-        button { padding: 10px 20px; font-size: 1.2em; cursor: pointer; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Metrônomo</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #121821;
+      --text: #e6eef8;
+      --muted: #9db1c7;
+      --accent: #4f9cff;
+      --accent-2: #7cf7d4;
+      --danger: #ff5d6c;
+      --ring: rgba(79,156,255,.35);
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:#f7f9fc; --card:#ffffff; --text:#0c1724; --muted:#5b6b7c; --accent:#2e77ff; --accent-2:#12c7a0; --ring:rgba(46,119,255,.2);} 
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 70% -10%, rgba(79,156,255,.08), transparent 60%),
+                  radial-gradient(800px 600px at -10% 120%, rgba(124,247,212,.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: clamp(12px, 2.5vw, 32px);
+    }
+    .wrap {
+      width: min(820px, 100%);
+      background: color-mix(in oklab, var(--card) 92%, transparent);
+      border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25), 0 0 0 8px var(--ring);
+      padding: clamp(16px, 3.5vw, 32px);
+    }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    h1 { font-size: clamp(22px, 4vw, 30px); margin: 0; letter-spacing: .4px; }
+    .muted { color: var(--muted); font-size: .95rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 2.2vw, 20px);
+    }
+    @media (min-width: 720px){
+      .grid { grid-template-columns: 1.2fr .8fr; align-items: start; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 94%, transparent), color-mix(in oklab, var(--card) 100%, transparent));
+      border: 1px solid color-mix(in oklab, var(--accent) 12%, transparent);
+      border-radius: 20px;
+      padding: clamp(14px, 2.4vw, 22px);
+    }
+
+    .bpm-display { 
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .bpm-number {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(52px, 12vw, 96px);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .beat-led {
+      width: clamp(16px, 3.2vw, 20px);
+      height: clamp(16px, 3.2vw, 20px);
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--muted) 60%, transparent);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.05);
+      transition: transform 80ms ease, background 80ms ease, box-shadow 80ms ease;
+    }
+    .beat-led.active {
+      background: var(--accent-2);
+      box-shadow: 0 0 0 6px rgba(124,247,212,.15), 0 0 24px rgba(124,247,212,.6);
+      transform: scale(1.08);
+    }
+
+    .controls { display: grid; gap: 12px; }
+    .row { display: grid; gap: 10px; }
+    @media (min-width: 520px){ .row.cols-2 { grid-template-columns: 1fr 1fr; } }
+
+    label { font-size: clamp(14px, 2.8vw, 16px); color: var(--muted); }
+
+    input[type="number"], button, .slider {
+      width: 100%;
+      font-size: clamp(18px, 5vw, 20px);
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent);
+      background: color-mix(in oklab, var(--card) 98%, transparent);
+      color: var(--text);
+      outline: none;
+    }
+    input[type="number"]:focus, .slider:focus-visible, button:focus-visible {
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .slider { -webkit-appearance: none; appearance: none; height: 44px; display: grid; align-content: center; padding: 0 10px; }
+    .slider::-webkit-slider-runnable-track { height: 6px; background: color-mix(in oklab, var(--muted) 28%, transparent); border-radius: 999px; }
+    .slider::-moz-range-track { height: 6px; background: color-mix(in oklab, var(--muted) 28%, transparent); border-radius: 999px; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 14px; background: var(--accent); box-shadow: 0 4px 18px rgba(46,119,255,.35); margin-top: -11px; border: none; }
+    .slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 14px; background: var(--accent); border: none; box-shadow: 0 4px 18px rgba(46,119,255,.35); }
+
+    .btn { cursor: pointer; user-select: none; transition: transform .05s ease, box-shadow .2s ease, background .2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 10px; font-weight: 600; }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 75%, transparent), var(--accent)); border: none; color: white; box-shadow: 0 8px 24px rgba(46,119,255,.45); }
+    .btn-muted { background: transparent; border: 1px solid color-mix(in oklab, var(--muted) 28%, transparent); color: var(--text); }
+    .btn-danger { background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 75%, transparent), var(--danger)); border: none; color: white; box-shadow: 0 8px 24px rgba(255,93,108,.35); }
+
+    .footer { display:flex; gap:12px; flex-wrap: wrap; margin-top: 10px; }
+    .note { font-size: 12px; color: var(--muted); opacity: .9; }
+  </style>
 </head>
 <body>
-    <h1>Metrônomo</h1>
-    <div class="bpm-display">-- BPM</div>
-    <button id="startButton">Tocar</button>
+  <main class="wrap" role="application" aria-label="Metrônomo">
+    <header>
+      <h1>Metrônomo</h1>
+      <button id="btn-back" class="btn btn-muted" title="Fechar esta aba" aria-label="Retornar">Retornar</button>
+    </header>
 
-    <script>
-        // Pega o valor do BPM da URL (ex: ?bpm=120)
-        const params = new URLSearchParams(window.location.search);
-        const bpm = parseInt(params.get('bpm'));
+    <section class="grid">
+      <div class="card">
+        <div class="bpm-display" aria-live="polite">
+          <div class="bpm-number" id="bpmBig">120</div>
+          <div class="beat-led" id="beatLed" aria-hidden="true"></div>
+        </div>
+      </div>
 
-        const bpmDisplay = document.querySelector('.bpm-display');
-        const startButton = document.getElementById('startButton');
-        let metronomeInterval;
+      <div class="card controls">
+        <div class="row cols-2">
+          <label for="bpmInput">Tempo (BPM)</label>
+          <label for="tapBtn" class="muted" style="text-align:right">Tap tempo</label>
+          <input type="number" id="bpmInput" min="20" max="300" step="1" value="120" inputmode="numeric" aria-label="Definir BPM" />
+          <button id="tapBtn" class="btn btn-muted" aria-label="Tap tempo (toque várias vezes)">TAP</button>
+        </div>
+        <div class="row">
+          <input type="range" id="bpmSlider" class="slider" min="20" max="300" step="1" value="120" aria-label="Controle deslizante de BPM" />
+        </div>
+        <div class="row cols-2">
+          <button id="startStopBtn" class="btn btn-primary" aria-pressed="false">Iniciar</button>
+          <button id="accentBtn" class="btn btn-muted" title="Alternar acento do primeiro tempo">Acento: Ligado</button>
+        </div>
+        <div class="footer">
+          <span class="note">Dica: barra de espaço inicia/para • T para Tap</span>
+        </div>
+      </div>
+    </section>
+  </main>
 
-        // O som do clique pode ser criado dentro da função para garantir que ele esteja pronto
-        // após a interação do usuário. Usamos o Base64 para um som de clique simples.
-        const clickSoundData = 'data:audio/wav;base64,UklGRlZ9AABXQVZFZm10IBAAAAABAAEAwAgAAMABAAABAAEAwBAAFBCAAAACABAA+gAAAGQAEAAIAAwAAAEhAAABCAABoAAAAlAAAALAAAACIAAAAWAAAMAAAACAAABUABAAIAABAAAgAAAEAAAAADAgQA';
+  <script>
+    // ====== Estado e utilidades ======
+    const bpmBig = document.getElementById('bpmBig');
+    const bpmInput = document.getElementById('bpmInput');
+    const bpmSlider = document.getElementById('bpmSlider');
+    const tapBtn = document.getElementById('tapBtn');
+    const startStopBtn = document.getElementById('startStopBtn');
+    const beatLed = document.getElementById('beatLed');
+    const backBtn = document.getElementById('btn-back');
+    const accentBtn = document.getElementById('accentBtn');
 
-        if (!isNaN(bpm) && bpm > 0) {
-            bpmDisplay.textContent = `${bpm} BPM`;
-            
-            startButton.addEventListener('click', () => {
-                if (!metronomeInterval) {
-                    const intervalInMs = 60000 / bpm;
-                    
-                    // Inicia o metrônomo e toca o som
-                    metronomeInterval = setInterval(() => {
-                        const clickSound = new Audio(clickSoundData);
-                        clickSound.play().catch(e => console.error("Erro ao tocar o áudio:", e));
-                    }, intervalInMs);
-                    
-                    startButton.textContent = 'Parar';
-                } else {
-                    clearInterval(metronomeInterval);
-                    metronomeInterval = null;
-                    startButton.textContent = 'Tocar';
-                }
-            });
-        } else {
-            bpmDisplay.textContent = 'BPM inválido';
-            startButton.style.display = 'none'; // Esconde o botão se o BPM for inválido
+    let audioCtx = null;
+    let isRunning = false;
+    let nextNoteTime = 0; // no contexto de áudio
+    let currentBeat = 0;
+    const lookahead = 25; // ms
+    const scheduleAheadTime = 0.1; // s
+    let timerID = null;
+    let bpm = 120;
+    let withAccent = true;
+
+    function updateBpmDisplay(val){
+      bpm = Math.max(20, Math.min(300, Math.round(Number(val) || 0)));
+      bpmBig.textContent = bpm;
+      bpmInput.value = bpm;
+      bpmSlider.value = bpm;
+      if(isRunning) {
+        // ajuste imediato do relógio: começa a contar a partir de agora
+        nextNoteTime = audioCtx.currentTime + 0.05;
+      }
+    }
+
+    bpmInput.addEventListener('input', (e)=> updateBpmDisplay(e.target.value));
+    bpmSlider.addEventListener('input', (e)=> updateBpmDisplay(e.target.value));
+
+    // ====== Tap Tempo ======
+    const tapTimes = [];
+    function registerTap(){
+      const now = performance.now();
+      // descarta taps longos
+      while(tapTimes.length && now - tapTimes[0] > 4000) tapTimes.shift();
+      tapTimes.push(now);
+      if(tapTimes.length >= 2){
+        let intervals = [];
+        for(let i=1;i<tapTimes.length;i++) intervals.push(tapTimes[i]-tapTimes[i-1]);
+        // média recortada para estabilidade
+        intervals.sort((a,b)=>a-b);
+        const keep = intervals.slice(Math.max(0, intervals.length-5));
+        const avg = keep.reduce((s,v)=>s+v,0)/keep.length;
+        const newBpm = Math.max(20, Math.min(300, Math.round(60000/avg)));
+        updateBpmDisplay(newBpm);
+      }
+      // feedback visual do tap
+      tapBtn.animate([{transform:'scale(1)'},{transform:'scale(0.97)'}],{duration:90, direction:'alternate'});
+    }
+
+    tapBtn.addEventListener('click', registerTap);
+    document.addEventListener('keydown', (e)=>{
+      if(e.code === 'KeyT') { registerTap(); }
+      if(e.code === 'Space') { e.preventDefault(); toggle(); }
+    });
+
+    // ====== Áudio: click preciso com Web Audio API ======
+    function initAudio(){
+      if(!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // iOS: reanudar no primeiro gesto se necessário
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
         }
-    </script>
+      }
+    }
+
+    function clickSound(time, accented){
+      if(!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      const freq = accented ? 2000 : 1400;
+      osc.frequency.setValueAtTime(freq, time);
+      // Envoltória curta tipo "tick"
+      gain.gain.setValueAtTime(0.0001, time);
+      gain.gain.exponentialRampToValueAtTime(0.7, time + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.06);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(time);
+      osc.stop(time + 0.07);
+    }
+
+    function scheduler(){
+      while (nextNoteTime < audioCtx.currentTime + scheduleAheadTime) {
+        const accented = withAccent && (currentBeat % 4 === 0);
+        clickSound(nextNoteTime, accented);
+        flashLed(nextNoteTime);
+        advanceNote();
+      }
+      timerID = setTimeout(scheduler, lookahead);
+    }
+
+    function advanceNote(){
+      const secondsPerBeat = 60.0 / bpm;
+      nextNoteTime += secondsPerBeat;
+      currentBeat++;
+    }
+
+    function flashLed(time){
+      const now = audioCtx.currentTime;
+      const delay = Math.max(0, (time - now) * 1000);
+      setTimeout(()=>{
+        beatLed.classList.add('active');
+        setTimeout(()=> beatLed.classList.remove('active'), 90);
+      }, delay);
+    }
+
+    function start(){
+      initAudio();
+      isRunning = true;
+      currentBeat = 0;
+      nextNoteTime = audioCtx.currentTime + 0.05; // um pequeno atraso para agendar
+      scheduler();
+      startStopBtn.textContent = 'Parar';
+      startStopBtn.setAttribute('aria-pressed', 'true');
+      startStopBtn.classList.remove('btn-primary');
+      startStopBtn.classList.add('btn-danger');
+    }
+
+    function stop(){
+      isRunning = false;
+      if(timerID) clearTimeout(timerID);
+      startStopBtn.textContent = 'Iniciar';
+      startStopBtn.setAttribute('aria-pressed', 'false');
+      startStopBtn.classList.add('btn-primary');
+      startStopBtn.classList.remove('btn-danger');
+    }
+
+    function toggle(){ isRunning ? stop() : start(); }
+
+    startStopBtn.addEventListener('click', toggle);
+
+    // Alternar acento do primeiro tempo
+    accentBtn.addEventListener('click', ()=>{
+      withAccent = !withAccent;
+      accentBtn.textContent = `Acento: ${withAccent ? 'Ligado' : 'Desligado'}`;
+    });
+
+    // ====== Botão Retornar (fechar aba) ======
+    backBtn.addEventListener('click', ()=>{
+      // Alguns navegadores bloqueiam window.close() se a aba não foi aberta via script
+      window.close();
+      // fallback: tentar voltar no histórico se não fechar
+      setTimeout(()=>{ try { history.length > 1 ? history.back() : null; } catch(_){} }, 100);
+    });
+
+    // Sincronizar exibição inicial
+    updateBpmDisplay(120);
+  </script>
 </body>
 </html>
