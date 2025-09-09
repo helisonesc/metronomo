@@ -24,7 +24,7 @@
         const clickSound = new Audio('data:audio/wav;base64,UklGRlZ9AABXQVZFZm10IBAAAAABAAEAwAgAAMABAAABAAEAwBAAFBCAAAACABAA+gAAAGQAEAAIAAwAAAEhAAABCAABoAAAAlAAAALAAAACIAAAAWAAAMAAAACAAABUABAAIAABAAAgAAAEAAAAADAgQA'); // Um som simples de clique
 
         if (!isNaN(bpm) && bpm > 0) {
-            bpmDisplay.textContent = `${120} BPM`;
+            bpmDisplay.textContent = `${bpm} BPM`;
             
             // Oculta o botão Tocar para que o usuário clique no display para iniciar o som.
             // A maioria dos navegadores exige uma interação do usuário para iniciar o áudio.
@@ -50,4 +50,5 @@
 
     </script>
 </body>
+
 </html>
