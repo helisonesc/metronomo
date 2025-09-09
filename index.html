@@ -5,7 +5,121 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Metrônomo</title>
   <style>
-    /* (mantive todo o CSS igual ao anterior) */
+    :root {
+      --bg: #0b0f14;
+      --card: #121821;
+      --text: #e6eef8;
+      --muted: #9db1c7;
+      --accent: #4f9cff;
+      --accent-2: #7cf7d4;
+      --danger: #ff5d6c;
+      --ring: rgba(79,156,255,.35);
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg:#f7f9fc; --card:#ffffff; --text:#0c1724; --muted:#5b6b7c; --accent:#2e77ff; --accent-2:#12c7a0; --ring:rgba(46,119,255,.2);} 
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 70% -10%, rgba(79,156,255,.08), transparent 60%),
+                  radial-gradient(800px 600px at -10% 120%, rgba(124,247,212,.08), transparent 60%),
+                  var(--bg);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: clamp(12px, 2.5vw, 32px);
+    }
+    .wrap {
+      width: min(820px, 100%);
+      background: color-mix(in oklab, var(--card) 92%, transparent);
+      border: 1px solid color-mix(in oklab, var(--accent) 18%, transparent);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25), 0 0 0 8px var(--ring);
+      padding: clamp(16px, 3.5vw, 32px);
+    }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    h1 { font-size: clamp(22px, 4vw, 30px); margin: 0; letter-spacing: .4px; }
+    .muted { color: var(--muted); font-size: .95rem; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: clamp(14px, 2.2vw, 20px);
+    }
+    @media (min-width: 720px){
+      .grid { grid-template-columns: 1.2fr .8fr; align-items: start; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 94%, transparent), color-mix(in oklab, var(--card) 100%, transparent));
+      border: 1px solid color-mix(in oklab, var(--accent) 12%, transparent);
+      border-radius: 20px;
+      padding: clamp(14px, 2.4vw, 22px);
+    }
+
+    .bpm-display { 
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .bpm-number {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      font-size: clamp(52px, 12vw, 96px);
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+    .beat-led {
+      width: clamp(16px, 3.2vw, 20px);
+      height: clamp(16px, 3.2vw, 20px);
+      border-radius: 999px;
+      background: color-mix(in oklab, var(--muted) 60%, transparent);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.05);
+      transition: transform 80ms ease, background 80ms ease, box-shadow 80ms ease;
+    }
+    .beat-led.active {
+      background: var(--accent-2);
+      box-shadow: 0 0 0 6px rgba(124,247,212,.15), 0 0 24px rgba(124,247,212,.6);
+      transform: scale(1.08);
+    }
+
+    .controls { display: grid; gap: 12px; }
+    .row { display: grid; gap: 10px; }
+    @media (min-width: 520px){ .row.cols-2 { grid-template-columns: 1fr 1fr; } }
+
+    label { font-size: clamp(14px, 2.8vw, 16px); color: var(--muted); }
+
+    input[type="number"], button, .slider {
+      width: 100%;
+      font-size: clamp(18px, 5vw, 20px);
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid color-mix(in oklab, var(--accent) 22%, transparent);
+      background: color-mix(in oklab, var(--card) 98%, transparent);
+      color: var(--text);
+      outline: none;
+    }
+    input[type="number"]:focus, .slider:focus-visible, button:focus-visible {
+      box-shadow: 0 0 0 4px var(--ring);
+    }
+
+    .slider { -webkit-appearance: none; appearance: none; height: 44px; display: grid; align-content: center; padding: 0 10px; }
+    .slider::-webkit-slider-runnable-track { height: 6px; background: color-mix(in oklab, var(--muted) 28%, transparent); border-radius: 999px; }
+    .slider::-moz-range-track { height: 6px; background: color-mix(in oklab, var(--muted) 28%, transparent); border-radius: 999px; }
+    .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 14px; background: var(--accent); box-shadow: 0 4px 18px rgba(46,119,255,.35); margin-top: -11px; border: none; }
+    .slider::-moz-range-thumb { width: 28px; height: 28px; border-radius: 14px; background: var(--accent); border: none; box-shadow: 0 4px 18px rgba(46,119,255,.35); }
+
+    .btn { cursor: pointer; user-select: none; transition: transform .05s ease, box-shadow .2s ease, background .2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 10px; font-weight: 600; }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 75%, transparent), var(--accent)); border: none; color: white; box-shadow: 0 8px 24px rgba(46,119,255,.45); }
+    .btn-muted { background: transparent; border: 1px solid color-mix(in oklab, var(--muted) 28%, transparent); color: var(--text); }
+    .btn-danger { background: linear-gradient(180deg, color-mix(in oklab, var(--danger) 75%, transparent), var(--danger)); border: none; color: white; box-shadow: 0 8px 24px rgba(255,93,108,.35); }
+
+    .footer { display:flex; gap:12px; flex-wrap: wrap; margin-top: 10px; }
+    .note { font-size: 12px; color: var(--muted); opacity: .9; }
   </style>
 </head>
 <body>
