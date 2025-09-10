@@ -159,6 +159,21 @@
   </main>
 
   <script>
+    // ====== Lógica de Inicialização do BPM ======
+    const params = new URLSearchParams(window.location.search);
+    let bpm = 120; // Valor padrão
+    if(params.has('bpm')){
+      const bpmUrl = parseInt(params.get('bpm'));
+      if(!isNaN(bpmUrl)){
+        bpm = bpmUrl;
+      }
+    }
+    
+    // Esta linha agora mostra o valor final do BPM
+    console.log("BPM final:", bpm);
+
+    // ============================================
+
     const bpmBig = document.getElementById('bpmBig');
     const bpmInput = document.getElementById('bpmInput');
     const bpmSlider = document.getElementById('bpmSlider');
@@ -175,10 +190,14 @@
     const lookahead = 25;
     const scheduleAheadTime = 0.1;
     let timerID = null;
-    let bpm;
     let withAccent = true;
-// Esta linha vai nos dizer o que está sendo lido!
-        console.log("BPM lido da URL:", bpm);
+
+    // Atualiza os elementos HTML com o BPM inicial
+    window.onload = function() {
+        bpmBig.textContent = bpm;
+        bpmInput.value = bpm;
+        bpmSlider.value = bpm;
+    };
 
     function updateBpmDisplay(val){
       bpm = Math.max(20, Math.min(300, Math.round(Number(val) || 0)));
@@ -298,20 +317,6 @@
       window.close();
       setTimeout(()=>{ try { history.length > 1 ? history.back() : null; } catch(_){} }, 100);
     });
-
-    // ====== Novo: BPM via URL ======
-    const params = new URLSearchParams(window.location.search);
-    if(params.has('bpm')){
-      const bpmUrl = parseInt(params.get('bpm'));
-      if(!isNaN(bpmUrl)){
-        updateBpmDisplay(bpmUrl);
-      }
-    } else {
-      updateBpmDisplay(120);
-    }
   </script>
 </body>
 </html>
-
-
-
