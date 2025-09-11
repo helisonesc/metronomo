@@ -160,14 +160,19 @@
 
   <script>
     // ====== Lógica de Inicialização do BPM ======
-    const params = new URLSearchParams(window.location.search);
-    let bpm = 120; // Valor padrão
-    if(params.has('bpm')){
-      const bpmUrl = parseInt(params.get('bpm'));
-      if(!isNaN(bpmUrl)){
-        bpm = bpmUrl;
-      }
-    }
+    const query = window.location.href.split("?");
+if (query.length > 1) {
+  const params = new URLSearchParams(query[1].replace(/&/g, "&"));
+  let bpmUrl = parseInt(params.get("bpm"));
+  if (!isNaN(bpmUrl)) {
+    updateBpmDisplay(bpmUrl);
+  } else {
+    updateBpmDisplay(120);
+  }
+} else {
+  updateBpmDisplay(120);
+}
+
     
     // Esta linha agora mostra o valor final do BPM
     console.log("BPM final:", bpm);
@@ -320,5 +325,6 @@
   </script>
 </body>
 </html>
+
 
 
